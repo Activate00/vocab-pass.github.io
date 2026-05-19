@@ -25,32 +25,9 @@
         .question-box { font-size: 18px; font-weight: bold; line-height: 1.6; margin: 20px 0; background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 5px solid var(--accent); text-align: left; box-sizing: border-box; }
         .hint-text { color: #94a3b8; font-size: 13px; margin-top: 10px; display: block; font-weight: normal; }
         
-        /* ================= 核心修复：4个选项纵向安全排列 ================= */
-        .options-list { 
-            display: flex; 
-            flex-direction: column; /* 严格强制：从上到下纵向排列 */
-            gap: 12px;              /* 选项之间的上下间距 */
-            width: 100%;            /* 撑满父容器宽度 */
-            box-sizing: border-box;
-            margin-top: 15px;
-        }
-        .opt-btn { 
-            display: block;         /* 独占一行 */
-            width: 100%;            /* 宽度100% 自动对齐 */
-            background-color: #fff; 
-            border: 2px solid #e2e8f0; 
-            padding: 16px 18px;     /* 加大点击区域，极大方便手机触摸选择 */
-            font-size: 15px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            text-align: left;       /* 文本靠左对齐，符合阅读习惯 */
-            transition: all 0.15s ease; 
-            color: #334155; 
-            font-weight: 500; 
-            line-height: 1.4;       /* 允许超长中文选项自动换行，绝不溢出 */
-            box-sizing: border-box; /* 严防按钮溢出屏幕 */
-            word-break: break-all;  /* 防止长英文单词撑破布局 */
-        }
+        /* 选项纵向安全排列容器 */
+        .options-list { display: flex; flex-direction: column; gap: 12px; width: 100%; box-sizing: border-box; margin-top: 15px; }
+        .opt-btn { display: block; width: 100%; background-color: #fff; border: 2px solid #e2e8f0; padding: 16px 18px; font-size: 15px; border-radius: 10px; cursor: pointer; text-align: left; transition: all 0.15s ease; color: #334155; font-weight: 500; line-height: 1.4; box-sizing: border-box; word-break: break-all; }
         .opt-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; }
         .correct { background-color: var(--success) !important; border-color: #27ae60 !important; color: white !important; }
         .wrong { background-color: var(--danger) !important; border-color: #c0392b !important; color: white !important; }
@@ -82,11 +59,16 @@
         <h1>高中英语词汇智能评估系统</h1>
         <p class="subtitle">高考多维考查题型 • 大数据学情分析</p>
         
-        <div class="section-title">1. 自由挑选复习单元：</div>
+        <div class="section-title">1. 自由挑选复习单元（支持跨书本多选）：</div>
         <div class="unit-grid">
-            <div><input type="checkbox" id="u10" class="card-checkbox" value="10" checked><label for="u10" class="card-label">Unit 10<br><small>Connections</small></label></div>
-            <div><input type="checkbox" id="u11" class="card-checkbox" value="11"><label for="u11" class="card-label">Unit 11<br><small>Conflict</small></label></div>
-            <div><input type="checkbox" id="u12" class="card-checkbox" value="12"><label for="u12" class="card-label">Unit 12<br><small>Innovation</small></label></div>
+            <!-- 选必三单元按钮 -->
+            <div><input type="checkbox" id="u7" class="card-checkbox" value="7"><label for="u7" class="card-label">Unit 7<br><small>选择性必修三</small></label></div>
+            <div><input type="checkbox" id="u8" class="card-checkbox" value="8"><label for="u8" class="card-label">Unit 8<br><small>选择性必修三</small></label></div>
+            <div><input type="checkbox" id="u9" class="card-checkbox" value="9"><label for="u9" class="card-label">Unit 9<br><small>选择性必修三</small></label></div>
+            <!-- 选必四单元按钮 -->
+            <div><input type="checkbox" id="u10" class="card-checkbox" value="10" checked><label for="u10" class="card-label">Unit 10<br><small>选择性必修四</small></label></div>
+            <div><input type="checkbox" id="u11" class="card-checkbox" value="11"><label for="u11" class="card-label">Unit 11<br><small>选择性必修四</small></label></div>
+            <div><input type="checkbox" id="u12" class="card-checkbox" value="12"><label for="u12" class="card-label">Unit 12<br><small>选择性必修四</small></label></div>
         </div>
 
         <div class="section-title">2. 选择专项强化题型：</div>
@@ -94,8 +76,8 @@
             <div><input type="radio" name="qtype" id="t1" class="card-checkbox" value="cn" checked><label for="t1" class="card-label">英译中选择 (含词性)</label></div>
             <div><input type="radio" name="qtype" id="t2" class="card-checkbox" value="fill"><label for="t2" class="card-label">高考语境挖空 (无中文)</label></div>
             <div><input type="radio" name="qtype" id="t3" class="card-checkbox" value="zh_en"><label for="t3" class="card-label">中译英基础拼写</label></div>
-            <div><input type="radio" name="qtype" id="t5" class="card-checkbox" value="context"><label for="t5" class="card-label">高考情景语义辨析</label></div>
-            <div style="grid-column: span 2;"><input type="radio" name="qtype" id="t4" class="card-checkbox" value="listen"><label for="t4" class="card-label">智能随机听写特训</label></div>
+            <div><input type="radio" name="qtype" id="t5" class="card-checkbox" value="context"><label for="t4" class="card-label">高考情景语义辨析</label></div>
+            <div style="grid-column: span 2;"><input type="radio" name="qtype" id="t4" class="card-checkbox" value="listen"><label for="t5" class="card-label">智能随机听写特训</label></div>
         </div>
 
         <button class="action-btn btn-blue" onclick="initQuiz()">🚀 启动所选单元测试</button>
@@ -125,7 +107,6 @@
 
         <div class="question-box" id="q-text">题目加载中</div>
         
-        <!-- 核心修复处：4选1纵向安全排列容器 -->
         <div class="options-list" id="opts-box"></div>
         
         <!-- 填空型输入框容器 -->
@@ -168,7 +149,6 @@ let activePool = []; let wrongList = []; let currIdx = 0;
 let hasAnswered = false; let currentType = 'cn'; let currentListenSubtype = '';
 let radarChartInstance = null; let lineChartInstance = null;
 
-// 页面初始化渲染图表
 window.onload = function() { render学情图表(); };
 
 function showView(id) {
@@ -193,25 +173,26 @@ function speak(text) {
 }
 function playCurrentWord() { speak(activePool[currIdx].word); }
 
-// 中途强退逻辑
 function confirmQuit() {
-    if(confirm("确定要终止本次练习吗？当前已做完的题目数据仍会被计入统计报表。")) {
-        showResult();
-    }
+    if(confirm("确定要终止本次练习吗？当前已做完的题目数据仍会被计入统计报表。")) { showResult(); }
 }
 
-// 启动测试
+// 核心修改处：动态提取所有被勾选的单元（7, 8, 9, 10, 11, 12均完美支持）
 function initQuiz() {
     let units = [];
-    if(document.getElementById('u10').checked) units.push(10);
-    if(document.getElementById('u11').checked) units.push(11);
-    if(document.getElementById('u12').checked) units.push(12);
+    // 自动扫描页面上所有勾选了的单元
+    const checkboxes = document.querySelectorAll('.unit-grid input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        if(cb.checked) { units.push(parseInt(cb.value)); }
+    });
+    
     if(units.length === 0) { alert("请至少挑选一个复习单元！"); return; }
 
     currentType = document.querySelector('input[name="qtype"]:checked').value;
+    // 从全量数据库中动态筛选出符合单元的单词
     activePool = globalDatabase.filter(item => units.includes(item.unit));
     
-    if(activePool.length === 0) { alert("词库为空，请检查database.js！"); return; }
+    if(activePool.length === 0) { alert("所选单元在 database.js 中未找到数据，请检查文件是否更新成功！"); return; }
     
     activePool = shuffle([...activePool]);
     wrongList = []; currIdx = 0;
@@ -219,7 +200,6 @@ function initQuiz() {
     renderQuestion();
 }
 
-// 核心多题型动态渲染引擎
 function renderQuestion() {
     if(currIdx >= activePool.length) { showResult(); return; }
     hasAnswered = false;
@@ -232,14 +212,12 @@ function renderQuestion() {
     document.getElementById('blank-input').value = '';
     document.getElementById('opts-box').innerHTML = '';
 
-    // 题型1：英译中选择题
     if(currentType === 'cn') {
         document.getElementById('info-mode').innerText = "题型：英译中";
         document.getElementById('opts-box').style.display = 'flex';
         document.getElementById('q-text').innerHTML = `<span style="font-size:34px; color:var(--accent); display:block; text-align:center;">${q.word}</span>`;
         generateOptions(q, 'cn_opt');
     }
-    // 题型2：高考语境挖空
     else if(currentType === 'fill') {
         document.getElementById('info-mode').innerText = "题型：高考语境挖空";
         document.getElementById('input-box').style.display = 'flex';
@@ -247,20 +225,17 @@ function renderQuestion() {
         let masked = q.word[0] + "_ ".repeat(len - 1);
         document.getElementById('q-text').innerHTML = `<div>${q.fill_q}</div><span class="hint-text">首字母提示：<strong style="color:#e67e22; font-size:20px;">${masked.trim()}</strong> (包含 ${len} 个字母)</span>`;
     }
-    // 题型3：中译英基础拼写
     else if(currentType === 'zh_en') {
         document.getElementById('info-mode').innerText = "题型：中译英拼写";
         document.getElementById('input-box').style.display = 'flex';
         document.getElementById('q-text').innerHTML = `<span style="font-size:18px;">【${q.pos} ${q.cn}】</span><span class="hint-text">首字母提示：<strong style="color:var(--accent); font-size:24px;">${q.word[0]}</strong>...</span>`;
     }
-    // 题型4：高考情景语义辨析
     else if(currentType === 'context') {
         document.getElementById('info-mode').innerText = "题型：高考语义辨析";
         document.getElementById('opts-box').style.display = 'flex';
         document.getElementById('q-text').innerHTML = `<div>${q.ctx_q}</div><span class="hint-text">请结合语境，选出最符合逻辑的英文单词填入：</span>`;
         generateOptions(q, 'en_opt');
     }
-    // 题型5：智能听写特训
     else if(currentType === 'listen') {
         document.getElementById('listen-audio-area').style.display = 'block';
         let subTypes = ['audio_to_cn', 'audio_to_en', 'audio_to_write'];
@@ -285,7 +260,6 @@ function renderQuestion() {
     }
 }
 
-// 4选1干扰项高智能生成算法（确保词性严格一致）
 function generateOptions(correctObj, mode) {
     let options = [];
     let correctText = mode === 'cn_opt' ? `${correctObj.pos} ${correctObj.cn}` : correctObj.word;
@@ -312,7 +286,6 @@ function generateOptions(correctObj, mode) {
         btn.onclick = () => {
             if(hasAnswered) return; hasAnswered = true;
             document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
-            
             logTypeStatistics(currentType);
 
             if(opt === correctText) {
@@ -330,7 +303,6 @@ function generateOptions(correctObj, mode) {
     });
 }
 
-// 输入框提交校验
 function checkSpellAnswer() {
     if(hasAnswered) return;
     const inputEl = document.getElementById('blank-input');
@@ -353,9 +325,7 @@ function checkSpellAnswer() {
     }
 }
 
-document.getElementById('blank-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') { checkSpellAnswer(); }
-});
+document.getElementById('blank-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') { checkSpellAnswer(); } });
 
 function logError(obj) {
     if (!wrongList.some(w => w.word === obj.word)) wrongList.push(obj);
@@ -441,9 +411,7 @@ function showResult() {
     } else { area.style.display = 'none'; }
 }
 
-function retryCurrentWrongs() {
-    activePool = shuffle([...wrongList]); wrongList = []; currIdx = 0; showView('quiz-view'); renderQuestion();
-}
+function retryCurrentWrongs() { activePool = shuffle([...wrongList]); wrongList = []; currIdx = 0; showView('quiz-view'); renderQuestion(); }
 
 function openWrongBook() {
     showView('history-view');
