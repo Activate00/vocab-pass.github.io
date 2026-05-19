@@ -8,34 +8,68 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #34495e; --accent: #3498db; --success: #2ecc71; --danger: #e74c3c; --bg: #f5f7fa; }
-        body { font-family: 'PingFang SC', Arial, sans-serif; background-color: var(--bg); color: #2c3e50; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        .container { background-color: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 650px; box-sizing: border-box; text-align: center; }
-        h1 { color: var(--primary); font-size: 24px; margin: 0 0 5px 0; }
-        .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
+        body { font-family: 'PingFang SC', Arial, sans-serif; background-color: var(--bg); color: #2c3e50; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        .container { background-color: #fff; padding: 25px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 650px; box-sizing: border-box; text-align: center; }
+        h1 { color: var(--primary); font-size: 22px; margin: 0 0 5px 0; }
+        .subtitle { color: #7f8c8d; font-size: 13px; margin-bottom: 25px; }
         .section-title { font-weight: bold; margin: 15px 0 10px 0; color: var(--primary); text-align: left; }
+        
+        /* 首页单元选择网格 */
         .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px; }
         .card-checkbox { display: none; }
         .card-label { background: #f8f9fa; border: 2px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 14px; transition: all 0.2s; display: block; font-weight: 500; }
         .card-checkbox:checked + .card-label { background: #e0f2fe; border-color: var(--accent); color: #0369a1; }
-        .quiz-header { display: flex; justify-content: space-between; align-items: center; color: #7f8c8d; font-size: 14px; margin-bottom: 15px; border-bottom: 1px solid #edf2f7; padding-bottom: 10px; }
-        .question-box { font-size: 20px; font-weight: bold; line-height: 1.6; margin: 25px 0; background: #f8fafc; padding: 25px; border-radius: 12px; border-left: 5px solid var(--accent); text-align: left; }
-        .hint-text { color: #94a3b8; font-size: 14px; margin-top: 10px; display: block; font-weight: normal; }
-        .options-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        .opt-btn { background-color: #fff; border: 2px solid #e2e8f0; padding: 15px; font-size: 16px; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.1s; color: #334155; font-weight: 500; }
+        
+        /* 答题顶部栏布局 */
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; color: #7f8c8d; font-size: 13px; margin-bottom: 15px; border-bottom: 1px solid #edf2f7; padding-bottom: 10px; }
+        .question-box { font-size: 18px; font-weight: bold; line-height: 1.6; margin: 20px 0; background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 5px solid var(--accent); text-align: left; box-sizing: border-box; }
+        .hint-text { color: #94a3b8; font-size: 13px; margin-top: 10px; display: block; font-weight: normal; }
+        
+        /* ================= 核心修复：4个选项纵向安全排列 ================= */
+        .options-list { 
+            display: flex; 
+            flex-direction: column; /* 严格强制：从上到下纵向排列 */
+            gap: 12px;              /* 选项之间的上下间距 */
+            width: 100%;            /* 撑满父容器宽度 */
+            box-sizing: border-box;
+            margin-top: 15px;
+        }
+        .opt-btn { 
+            display: block;         /* 独占一行 */
+            width: 100%;            /* 宽度100% 自动对齐 */
+            background-color: #fff; 
+            border: 2px solid #e2e8f0; 
+            padding: 16px 18px;     /* 加大点击区域，极大方便手机触摸选择 */
+            font-size: 15px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            text-align: left;       /* 文本靠左对齐，符合阅读习惯 */
+            transition: all 0.15s ease; 
+            color: #334155; 
+            font-weight: 500; 
+            line-height: 1.4;       /* 允许超长中文选项自动换行，绝不溢出 */
+            box-sizing: border-box; /* 严防按钮溢出屏幕 */
+            word-break: break-all;  /* 防止长英文单词撑破布局 */
+        }
         .opt-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; }
         .correct { background-color: var(--success) !important; border-color: #27ae60 !important; color: white !important; }
         .wrong { background-color: var(--danger) !important; border-color: #c0392b !important; color: white !important; }
-        .input-container { display: flex; gap: 10px; margin: 20px 0; }
-        .text-input { flex: 1; padding: 15px; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 8px; outline: none; text-align: center; font-weight: bold; }
-        .action-btn { width: 100%; padding: 15px; font-size: 17px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; color: white; transition: background 0.2s; margin-top: 12px; }
+        
+        /* 拼写输入框 */
+        .input-container { display: flex; gap: 10px; margin: 20px 0; width: 100%; box-sizing: border-box; }
+        .text-input { flex: 1; padding: 15px; font-size: 16px; border: 2px solid #cbd5e1; border-radius: 8px; outline: none; text-align: center; font-weight: bold; width: 100%; box-sizing: border-box; }
+        
+        /* 通用动作按钮 */
+        .action-btn { width: 100%; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; color: white; transition: background 0.2s; margin-top: 12px; box-sizing: border-box; }
         .btn-blue { background-color: var(--accent); }
         .btn-red { background-color: var(--danger); }
         .btn-gray { background-color: #94a3b8; }
-        .btn-quit { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-quit { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        
         .scroll-list { text-align: left; max-height: 200px; overflow-y: auto; background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e2e8f0; }
         .list-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding: 10px 0; font-size: 14px; }
         .badge { background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
-        .chart-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-top: 20px; }
+        .chart-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-top: 15px; box-sizing: border-box; width: 100%; }
         #quiz-view, #result-view, #history-view { display: none; }
         .audio-btn { background: #e0f2fe; color: #0284c7; border: none; padding: 10px 20px; font-size: 15px; border-radius: 20px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
     </style>
@@ -91,7 +125,7 @@
 
         <div class="question-box" id="q-text">题目加载中</div>
         
-        <!-- 选择/情景题 4选1 容器 -->
+        <!-- 核心修复处：4选1纵向安全排列容器 -->
         <div class="options-list" id="opts-box"></div>
         
         <!-- 填空型输入框容器 -->
@@ -205,7 +239,7 @@ function renderQuestion() {
         document.getElementById('q-text').innerHTML = `<span style="font-size:34px; color:var(--accent); display:block; text-align:center;">${q.word}</span>`;
         generateOptions(q, 'cn_opt');
     }
-    // 题型2：高考语境挖空 (全新升级：纯长句高考语境，完全隐藏中文，只留首字母)
+    // 题型2：高考语境挖空
     else if(currentType === 'fill') {
         document.getElementById('info-mode').innerText = "题型：高考语境挖空";
         document.getElementById('input-box').style.display = 'flex';
@@ -217,9 +251,9 @@ function renderQuestion() {
     else if(currentType === 'zh_en') {
         document.getElementById('info-mode').innerText = "题型：中译英拼写";
         document.getElementById('input-box').style.display = 'flex';
-        document.getElementById('q-text').innerHTML = `<span style="font-size:20px;">【${q.pos} ${q.cn}】</span><span class="hint-text">首字母提示：<strong style="color:var(--accent); font-size:24px;">${q.word[0]}</strong>...</span>`;
+        document.getElementById('q-text').innerHTML = `<span style="font-size:18px;">【${q.pos} ${q.cn}】</span><span class="hint-text">首字母提示：<strong style="color:var(--accent); font-size:24px;">${q.word[0]}</strong>...</span>`;
     }
-    // 题型4：高考情景语义辨析 (重新满血加回)
+    // 题型4：高考情景语义辨析
     else if(currentType === 'context') {
         document.getElementById('info-mode').innerText = "题型：高考语义辨析";
         document.getElementById('opts-box').style.display = 'flex';
@@ -257,11 +291,9 @@ function generateOptions(correctObj, mode) {
     let correctText = mode === 'cn_opt' ? `${correctObj.pos} ${correctObj.cn}` : correctObj.word;
     options.push(correctText);
 
-    // 如果是情景题，直接读取数据库中AI生成的的高迷惑干扰项
     if(currentType === 'context' && correctObj.ctx_opts) {
         options = shuffle([...correctObj.ctx_opts]);
     } else {
-        // 动态过滤同词性的词作为错误项
         let distractors = globalDatabase.filter(item => item.word !== correctObj.word && item.pos === correctObj.pos);
         if(distractors.length < 3) distractors = globalDatabase.filter(item => item.word !== correctObj.word);
         shuffle(distractors);
@@ -281,26 +313,24 @@ function generateOptions(correctObj, mode) {
             if(hasAnswered) return; hasAnswered = true;
             document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
             
-            // 记入题型图表大数据
             logTypeStatistics(currentType);
 
             if(opt === correctText) {
                 btn.classList.add('correct');
-                // 仅在答对时，记录每天背诵去重单词量
                 logDailyWordPassed(correctObj.word);
-                setTimeout(() => { currIdx++; renderQuestion(); }, 700);
+                setTimeout(() => { currIdx++; renderQuestion(); }, 600);
             } else {
                 btn.classList.add('wrong');
                 document.querySelectorAll('.opt-btn').forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
                 logError(correctObj);
-                setTimeout(() => { currIdx++; renderQuestion(); }, 1600);
+                setTimeout(() => { currIdx++; renderQuestion(); }, 1500);
             }
         };
         box.appendChild(btn);
     });
 }
 
-// 输入框提交校验（支持回车键）
+// 输入框提交校验
 function checkSpellAnswer() {
     if(hasAnswered) return;
     const inputEl = document.getElementById('blank-input');
@@ -314,21 +344,19 @@ function checkSpellAnswer() {
     if(userAns === q.word.toLowerCase()) {
         inputEl.style.backgroundColor = '#d4edda';
         logDailyWordPassed(q.word);
-        setTimeout(() => { inputEl.style.backgroundColor = '#fff'; currIdx++; renderQuestion(); }, 700);
+        setTimeout(() => { inputEl.style.backgroundColor = '#fff'; currIdx++; renderQuestion(); }, 600);
     } else {
         inputEl.style.backgroundColor = '#f8d7da';
         inputEl.value = `❌ 答案: ${q.word}`;
         logError(q);
-        setTimeout(() => { inputEl.style.backgroundColor = '#fff'; currIdx++; renderQuestion(); }, 2000);
+        setTimeout(() => { inputEl.style.backgroundColor = '#fff'; currIdx++; renderQuestion(); }, 1800);
     }
 }
 
-// 绑定回车事件
 document.getElementById('blank-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') { checkSpellAnswer(); }
 });
 
-// 数据归档保存逻辑
 function logError(obj) {
     if (!wrongList.some(w => w.word === obj.word)) wrongList.push(obj);
     let history = JSON.parse(localStorage.getItem('hsFinalHistory')) || {};
@@ -337,27 +365,21 @@ function logError(obj) {
     localStorage.setItem('hsFinalHistory', JSON.stringify(history));
 }
 
-// 记录题型被刷的次数 (多边形数据基础)
 function logTypeStatistics(type) {
     let stats = JSON.parse(localStorage.getItem('hsTypeStats')) || { cn: 0, fill: 0, zh_en: 0, context: 0, listen: 0 };
     stats[type] = (stats[type] || 0) + 1;
     localStorage.setItem('hsTypeStats', JSON.stringify(stats));
 }
 
-// 记录每日通过的独立单词量（去重）
 function logDailyWordPassed(word) {
-    const today = new Date().toLocaleDateString(); // 生成 "2026/5/19" 格式的横坐标
+    const today = new Date().toLocaleDateString(); 
     let dailyData = JSON.parse(localStorage.getItem('hsDailyWords')) || {};
     if (!dailyData[today]) dailyData[today] = [];
-    if (!dailyData[today].includes(word)) {
-        dailyData[today].push(word); // 确保同一个词当天不重复计算
-    }
+    if (!dailyData[today].includes(word)) { dailyData[today].push(word); }
     localStorage.setItem('hsDailyWords', JSON.stringify(dailyData));
 }
 
-// 渲染大数据的核心引擎 (Chart.js 交互配置)
 function render学情图表() {
-    // 1. 多边形雷达图 (题型占比)
     let typeStats = JSON.parse(localStorage.getItem('hsTypeStats')) || { cn: 0, fill: 0, zh_en: 0, context: 0, listen: 0 };
     const ctxRadar = document.getElementById('radarChart').getContext('2d');
     if (radarChartInstance) radarChartInstance.destroy();
@@ -377,12 +399,9 @@ function render学情图表() {
         options: { scales: { r: { angleLines: { display: true }, suggestMin: 0 } }, plugins: { legend: { position: 'top' } } }
     });
 
-    // 2. 趋势曲线图 (每日背诵独立去重新词量)
     let dailyData = JSON.parse(localStorage.getItem('hsDailyWords')) || {};
-    let dates = Object.keys(dailyData).sort(); // 按时间先后排序
-    let counts = dates.map(d => dailyData[d].length); // 提取出当天通关的去重词汇数
-
-    // 如果没有数据，默认生成最近一天的空数据占位
+    let dates = Object.keys(dailyData).sort(); 
+    let counts = dates.map(d => dailyData[d].length); 
     if(dates.length === 0) { dates = [new Date().toLocaleDateString()]; counts = [0]; }
 
     const ctxLine = document.getElementById('lineChart').getContext('2d');
@@ -406,10 +425,9 @@ function render学情图表() {
     });
 }
 
-// 报告生成
 function showResult() {
     showView('result-view');
-    let total = activePool.slice(0, currIdx).length; // 动态计算实际做过的题目数
+    let total = activePool.slice(0, currIdx).length; 
     if(currIdx >= activePool.length) total = activePool.length;
     let score = total - wrongList.length;
     
