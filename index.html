@@ -61,18 +61,17 @@
         
         <div class="section-title">1. 自由挑选复习单元（支持跨书本多选）：</div>
         <div class="unit-grid">
-            <!-- 选必三单元按钮 -->
+            <!-- 选必三单元 -->
             <div><input type="checkbox" id="u7" class="card-checkbox" value="7"><label for="u7" class="card-label">Unit 7<br><small>选择性必修三</small></label></div>
             <div><input type="checkbox" id="u8" class="card-checkbox" value="8"><label for="u8" class="card-label">Unit 8<br><small>选择性必修三</small></label></div>
             <div><input type="checkbox" id="u9" class="card-checkbox" value="9"><label for="u9" class="card-label">Unit 9<br><small>选择性必修三</small></label></div>
-            <!-- 选必四单元按钮 -->
+            <!-- 选必四单元 -->
             <div><input type="checkbox" id="u10" class="card-checkbox" value="10" checked><label for="u10" class="card-label">Unit 10<br><small>选择性必修四</small></label></div>
             <div><input type="checkbox" id="u11" class="card-checkbox" value="11"><label for="u11" class="card-label">Unit 11<br><small>选择性必修四</small></label></div>
             <div><input type="checkbox" id="u12" class="card-checkbox" value="12"><label for="u12" class="card-label">Unit 12<br><small>选择性必修四</small></label></div>
         </div>
 
         <div class="section-title">2. 选择专项强化题型：</div>
-        <!-- 核心Bug修复处：严格统一了单选框的 id 与 label for 绑定关系，解决了点击无效和听写选不到的问题 -->
         <div class="unit-grid" style="grid-template-columns: repeat(2, 1fr); gap:10px;">
             <div><input type="radio" name="qtype" id="t1" class="card-checkbox" value="cn" checked><label for="t1" class="card-label">英译中选择 (含词性)</label></div>
             <div><input type="radio" name="qtype" id="t2" class="card-checkbox" value="fill"><label for="t2" class="card-label">高考语境挖空 (无中文)</label></div>
@@ -145,7 +144,6 @@
 <script src="database.js"></script>
 
 <script>
-// 核心状态控制
 let activePool = []; let wrongList = []; let currIdx = 0; 
 let hasAnswered = false; let currentType = 'cn'; let currentListenSubtype = '';
 let radarChartInstance = null; let lineChartInstance = null;
@@ -163,11 +161,12 @@ function showView(id) {
 function toHome() { showView('home-view'); }
 function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
 
-// 发音核心引擎
 function speak(text) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
-        let msg = new SpeechSynthesisUtterance(text);
+        // 自动清洗星号以防TTS引擎报错
+        let cleanedText = text.replace(/^\*/, '').trim();
+        let msg = new SpeechSynthesisUtterance(cleanedText);
         msg.lang = 'en-US'; msg.rate = 0.82;
         window.speechSynthesis.speak(msg);
     }
@@ -178,7 +177,6 @@ function confirmQuit() {
     if(confirm("确定要终止本次练习吗？当前已做完的题目数据仍会被计入统计报表。")) { showResult(); }
 }
 
-// 核心Bug修复：规范了数值转换，确保能无缝读取 database.js 中的 unit 数据
 function initQuiz() {
     let units = [];
     const checkboxes = document.querySelectorAll('.unit-grid input[type="checkbox"]');
@@ -190,10 +188,10 @@ function initQuiz() {
 
     currentType = document.querySelector('input[name="qtype"]:checked').value;
     
-    // 过滤词库数据
+    // 增加数据容错清洗：过滤并确保 unit 完全比对成功
     activePool = globalDatabase.filter(item => units.includes(Number(item.unit)));
     
-    if(activePool.length === 0) { alert("没有筛选到对应单词！请确保您的 database.js 文件已正确包含选必三(7,8,9)和选必四(10,11,12)的数据。"); return; }
+    if(activePool.length === 0) { alert("未筛选到单词！请检查 database.js 是否放置在 index.html 相同的文件夹内。"); return; }
     
     activePool = shuffle([...activePool]);
     wrongList = []; currIdx = 0;
@@ -206,6 +204,9 @@ function renderQuestion() {
     hasAnswered = false;
     const q = activePool[currIdx];
     
+    // 全局自动清洗显示端和比对端的星号
+    let cleanWord = q.word.replace(/^\*/, '').trim();
+    
     document.getElementById('info-progress').innerText = `进度：${currIdx + 1} / ${activePool.length}`;
     document.getElementById('listen-audio-area').style.display = 'none';
     document.getElementById('opts-box').style.display = 'none';
@@ -216,20 +217,20 @@ function renderQuestion() {
     if(currentType === 'cn') {
         document.getElementById('info-mode').innerText = "题型：英译中";
         document.getElementById('opts-box').style.display = 'flex';
-        document.getElementById('q-text').innerHTML = `<span style="font-size:34px; color:var(--accent); display:block; text-align:center;">${q.word}</span>`;
+        document.getElementById('q-text').innerHTML = `<span style="font-size:34px; color:var(--accent); display:block; text-align:center;">${cleanWord}</span>`;
         generateOptions(q, 'cn_opt');
     }
     else if(currentType === 'fill') {
         document.getElementById('info-mode').innerText = "题型：高考语境挖空";
         document.getElementById('input-box').style.display = 'flex';
-        let len = q.word.length;
-        let masked = q.word[0] + "_ ".repeat(len - 1);
+        let len = cleanWord.length;
+        let masked = cleanWord[0] + "_ ".repeat(len - 1);
         document.getElementById('q-text').innerHTML = `<div>${q.fill_q}</div><span class="hint-text">首字母提示：<strong style="color:#e67e22; font-size:20px;">${masked.trim()}</strong> (包含 ${len} 个字母)</span>`;
     }
     else if(currentType === 'zh_en') {
         document.getElementById('info-mode').innerText = "题型：中译英拼写";
         document.getElementById('input-box').style.display = 'flex';
-        document.getElementById('q-text').innerHTML = `<span style="font-size:18px;">【${q.pos} ${q.cn}】</span><span class="hint-text">首字母提示：<strong style="color:var(--accent); font-size:24px;">${q.word[0]}</strong>...</span>`;
+        document.getElementById('q-text').innerHTML = `<span style="font-size:18px;">【${q.pos} ${q.cn}】</span><span class="hint-text">首字母提示：<strong style="color:var(--accent); font-size:24px;">${cleanWord[0]}</strong>...</span>`;
     }
     else if(currentType === 'context') {
         document.getElementById('info-mode').innerText = "题型：高考语义辨析";
@@ -241,7 +242,7 @@ function renderQuestion() {
         document.getElementById('listen-audio-area').style.display = 'block';
         let subTypes = ['audio_to_cn', 'audio_to_en', 'audio_to_write'];
         currentListenSubtype = subTypes[Math.floor(Math.random() * subTypes.length)];
-        setTimeout(() => { playCurrentWord(); }, 300);
+        setTimeout(() => { speak(cleanWord); }, 300);
 
         if(currentListenSubtype === 'audio_to_cn') {
             document.getElementById('info-mode').innerText = "听写：听音选中文";
@@ -256,52 +257,72 @@ function renderQuestion() {
         } else if(currentListenSubtype === 'audio_to_write') {
             document.getElementById('info-mode').innerText = "听写：听音拼写单词";
             document.getElementById('input-box').style.display = 'flex';
-            document.getElementById('q-text').innerHTML = `🎧 听发音，拼写出完整单词<span class="hint-text">提示：首字母为 [ ${q.word[0]} ]</span>`;
+            document.getElementById('q-text').innerHTML = `🎧 听发音，拼写出完整单词<span class="hint-text">提示：首字母为 [ ${cleanWord[0]} ]</span>`;
         }
     }
 }
 
 function generateOptions(correctObj, mode) {
-    let options = [];
-    let correctText = mode === 'cn_opt' ? `${correctObj.pos} ${correctObj.cn}` : correctObj.word;
-    options.push(correctText);
+    try {
+        let options = [];
+        let cleanCorrectWord = correctObj.word.replace(/^\*/, '').trim();
+        let correctText = mode === 'cn_opt' ? `${correctObj.pos} ${correctObj.cn}` : cleanCorrectWord;
+        options.push(correctText);
 
-    if(currentType === 'context' && correctObj.ctx_opts) {
-        options = shuffle([...correctObj.ctx_opts]);
-    } else {
-        let distractors = globalDatabase.filter(item => item.word !== correctObj.word && item.pos === correctObj.pos);
-        if(distractors.length < 3) distractors = globalDatabase.filter(item => item.word !== correctObj.word);
-        shuffle(distractors);
-        for(let i=0; i<3; i++) {
-            let d = distractors[i];
-            options.push(mode === 'cn_opt' ? `${d.pos} ${d.cn}` : d.word);
-        }
-        shuffle(options);
-    }
-
-    const box = document.getElementById('opts-box');
-    options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'opt-btn';
-        btn.innerText = opt;
-        btn.onclick = () => {
-            if(hasAnswered) return; hasAnswered = true;
-            document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
-            logTypeStatistics(currentType);
-
-            if(opt === correctText) {
-                btn.classList.add('correct');
-                logDailyWordPassed(correctObj.word);
-                setTimeout(() => { currIdx++; renderQuestion(); }, 600);
-            } else {
-                btn.classList.add('wrong');
-                document.querySelectorAll('.opt-btn').forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
-                logError(correctObj);
-                setTimeout(() => { currIdx++; renderQuestion(); }, 1500);
+        if(currentType === 'context' && correctObj.ctx_opts) {
+            // 清洗语义辨析自带的干扰项
+            let cleanedCtxOpts = correctObj.ctx_opts.map(o => o.replace(/^\*/, '').trim());
+            options = shuffle([...cleanedCtxOpts]);
+        } else {
+            // 高防爆：清洗全库匹配
+            let distractors = globalDatabase.filter(item => {
+                let w = item.word.replace(/^\*/, '').trim();
+                return w !== cleanCorrectWord && item.pos === correctObj.pos;
+            });
+            if(distractors.length < 3) {
+                distractors = globalDatabase.filter(item => item.word.replace(/^\*/, '').trim() !== cleanCorrectWord);
             }
-        };
-        box.appendChild(btn);
-    });
+            shuffle(distractors);
+            for(let i=0; i<Math.min(3, distractors.length); i++) {
+                let d = distractors[i];
+                let w = d.word.replace(/^\*/, '').trim();
+                options.push(mode === 'cn_opt' ? `${d.pos} ${d.cn}` : w);
+            }
+            while(options.length < 4) { options.push(correctText); } // 垫底机制防止数量不够
+            options = Array.from(new Set(options)); // 去重
+            while(options.length < 4) { options.push("n. [大纲补充选项]"); }
+            shuffle(options);
+        }
+
+        const box = document.getElementById('opts-box');
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = opt;
+            btn.onclick = () => {
+                if(hasAnswered) return; hasAnswered = true;
+                document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+                logTypeStatistics(currentType);
+
+                if(opt === correctText) {
+                    btn.classList.add('correct');
+                    logDailyWordPassed(cleanCorrectWord);
+                    setTimeout(() => { currIdx++; renderQuestion(); }, 600);
+                } else {
+                    btn.classList.add('wrong');
+                    document.querySelectorAll('.opt-btn').forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
+                    logError(correctObj);
+                    setTimeout(() => { currIdx++; renderQuestion(); }, 1500);
+                }
+            };
+            box.appendChild(btn);
+        });
+    } catch (e) {
+        // 捕获可能导致的任何异常，直接跳到下一题，防止界面彻底卡死
+        console.error(e);
+        currIdx++;
+        renderQuestion();
+    }
 }
 
 function checkSpellAnswer() {
@@ -312,15 +333,16 @@ function checkSpellAnswer() {
     
     hasAnswered = true;
     const q = activePool[currIdx];
+    let cleanCorrectWord = q.word.replace(/^\*/, '').trim();
     logTypeStatistics(currentType);
 
-    if(userAns === q.word.toLowerCase()) {
+    if(userAns === cleanCorrectWord.toLowerCase()) {
         inputEl.style.backgroundColor = '#d4edda';
-        logDailyWordPassed(q.word);
+        logDailyWordPassed(cleanCorrectWord);
         setTimeout(() => { inputEl.style.backgroundColor = '#fff'; currIdx++; renderQuestion(); }, 600);
     } else {
         inputEl.style.backgroundColor = '#f8d7da';
-        inputEl.value = `❌ 答案: ${q.word}`;
+        inputEl.value = `❌ 答案: ${cleanCorrectWord}`;
         logError(q);
         setTimeout(() => { inputEl.style.backgroundColor = '#fff'; currIdx++; renderQuestion(); }, 1800);
     }
@@ -329,10 +351,11 @@ function checkSpellAnswer() {
 document.getElementById('blank-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') { checkSpellAnswer(); } });
 
 function logError(obj) {
-    if (!wrongList.some(w => w.word === obj.word)) wrongList.push(obj);
+    let cleanW = obj.word.replace(/^\*/, '').trim();
+    if (!wrongList.some(w => w.word.replace(/^\*/, '').trim() === cleanW)) wrongList.push(obj);
     let history = JSON.parse(localStorage.getItem('hsFinalHistory')) || {};
-    if (history[obj.word]) { history[obj.word].count += 1; } 
-    else { history[obj.word] = { unit: obj.unit, pos: obj.pos, cn: obj.cn, count: 1 }; }
+    if (history[cleanW]) { history[cleanW].count += 1; } 
+    else { history[cleanW] = { unit: obj.unit, pos: obj.pos, cn: obj.cn, count: 1 }; }
     localStorage.setItem('hsFinalHistory', JSON.stringify(history));
 }
 
@@ -343,10 +366,11 @@ function logTypeStatistics(type) {
 }
 
 function logDailyWordPassed(word) {
+    let cleanW = word.replace(/^\*/, '').trim();
     const today = new Date().toLocaleDateString(); 
     let dailyData = JSON.parse(localStorage.getItem('hsDailyWords')) || {};
     if (!dailyData[today]) dailyData[today] = [];
-    if (!dailyData[today].includes(word)) { dailyData[today].push(word); }
+    if (!dailyData[today].includes(cleanW)) { dailyData[today].push(cleanW); }
     localStorage.setItem('hsDailyWords', JSON.stringify(dailyData));
 }
 
@@ -408,7 +432,10 @@ function showResult() {
     const list = document.getElementById('curr-wrong-list');
     if(wrongList.length > 0) {
         area.style.display = 'block'; list.innerHTML = '';
-        wrongList.forEach(w => { list.innerHTML += `<div class="list-item"><span><strong>${w.word}</strong> (${w.pos} ${w.cn})</span></div>`; });
+        wrongList.forEach(w => { 
+            let cw = w.word.replace(/^\*/, '').trim();
+            list.innerHTML += `<div class="list-item"><span><strong>${cw}</strong> (${w.pos} ${w.cn})</span></div>`; 
+        });
     } else { area.style.display = 'none'; }
 }
 
@@ -427,7 +454,7 @@ function openWrongBook() {
 
 function startHistoryQuiz() {
     let history = JSON.parse(localStorage.getItem('hsFinalHistory')) || {};
-    let pool = Object.keys(history).map(k => { return globalDatabase.find(g => g.word === k) || { word: k, unit: history[k].unit, pos: history[k].pos, cn: history[k].cn }; });
+    let pool = Object.keys(history).map(k => { return globalDatabase.find(g => g.word.replace(/^\*/, '').trim() === k) || { word: k, unit: history[k].unit, pos: history[k].pos, cn: history[k].cn }; });
     if(pool.length === 0) return;
     activePool = shuffle([...pool]); wrongList = []; currIdx = 0; currentType = 'cn'; showView('quiz-view'); renderQuestion();
 }
