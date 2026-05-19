@@ -72,12 +72,13 @@
         </div>
 
         <div class="section-title">2. 选择专项强化题型：</div>
+        <!-- 核心Bug修复处：严格统一了单选框的 id 与 label for 绑定关系，解决了点击无效和听写选不到的问题 -->
         <div class="unit-grid" style="grid-template-columns: repeat(2, 1fr); gap:10px;">
             <div><input type="radio" name="qtype" id="t1" class="card-checkbox" value="cn" checked><label for="t1" class="card-label">英译中选择 (含词性)</label></div>
             <div><input type="radio" name="qtype" id="t2" class="card-checkbox" value="fill"><label for="t2" class="card-label">高考语境挖空 (无中文)</label></div>
             <div><input type="radio" name="qtype" id="t3" class="card-checkbox" value="zh_en"><label for="t3" class="card-label">中译英基础拼写</label></div>
-            <div><input type="radio" name="qtype" id="t5" class="card-checkbox" value="context"><label for="t4" class="card-label">高考情景语义辨析</label></div>
-            <div style="grid-column: span 2;"><input type="radio" name="qtype" id="t4" class="card-checkbox" value="listen"><label for="t5" class="card-label">智能随机听写特训</label></div>
+            <div><input type="radio" name="qtype" id="t5" class="card-checkbox" value="context"><label for="t5" class="card-label">高考情景语义辨析</label></div>
+            <div style="grid-column: span 2;"><input type="radio" name="qtype" id="t4" class="card-checkbox" value="listen"><label for="t4" class="card-label">智能随机听写特训</label></div>
         </div>
 
         <button class="action-btn btn-blue" onclick="initQuiz()">🚀 启动所选单元测试</button>
@@ -177,22 +178,22 @@ function confirmQuit() {
     if(confirm("确定要终止本次练习吗？当前已做完的题目数据仍会被计入统计报表。")) { showResult(); }
 }
 
-// 核心修改处：动态提取所有被勾选的单元（7, 8, 9, 10, 11, 12均完美支持）
+// 核心Bug修复：规范了数值转换，确保能无缝读取 database.js 中的 unit 数据
 function initQuiz() {
     let units = [];
-    // 自动扫描页面上所有勾选了的单元
     const checkboxes = document.querySelectorAll('.unit-grid input[type="checkbox"]');
     checkboxes.forEach(cb => {
-        if(cb.checked) { units.push(parseInt(cb.value)); }
+        if(cb.checked) { units.push(Number(cb.value)); }
     });
     
     if(units.length === 0) { alert("请至少挑选一个复习单元！"); return; }
 
     currentType = document.querySelector('input[name="qtype"]:checked').value;
-    // 从全量数据库中动态筛选出符合单元的单词
-    activePool = globalDatabase.filter(item => units.includes(item.unit));
     
-    if(activePool.length === 0) { alert("所选单元在 database.js 中未找到数据，请检查文件是否更新成功！"); return; }
+    // 过滤词库数据
+    activePool = globalDatabase.filter(item => units.includes(Number(item.unit)));
+    
+    if(activePool.length === 0) { alert("没有筛选到对应单词！请确保您的 database.js 文件已正确包含选必三(7,8,9)和选必四(10,11,12)的数据。"); return; }
     
     activePool = shuffle([...activePool]);
     wrongList = []; currIdx = 0;
