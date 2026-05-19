@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高中英语高考词汇综合复习与数据评估系统</title>
+    <!-- 引入强大的 Chart.js 动态图表库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary: #34495e; --accent: #3498db; --success: #2ecc71; --danger: #e74c3c; --bg: #f5f7fa; }
+        body { font-family: 'PingFang SC', Arial, sans-serif; background-color: var(--bg); color: #2c3e50; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        .container { background-color: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 650px; box-sizing: border-box; text-align: center; }
+        h1 { color: var(--primary); font-size: 24px; margin: 0 0 5px 0; }
+        .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
+        .section-title { font-weight: bold; margin: 15px 0 10px 0; color: var(--primary); text-align: left; }
+        .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px; }
+        .card-checkbox { display: none; }
+        .card-label { background: #f8f9fa; border: 2px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 14px; transition: all 0.2s; display: block; font-weight: 500; }
+        .card-checkbox:checked + .card-label { background: #e0f2fe; border-color: var(--accent); color: #0369a1; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; color: #7f8c8d; font-size: 14px; margin-bottom: 15px; border-bottom: 1px solid #edf2f7; padding-bottom: 10px; }
+        .question-box { font-size: 20px; font-weight: bold; line-height: 1.6; margin: 25px 0; background: #f8fafc; padding: 25px; border-radius: 12px; border-left: 5px solid var(--accent); text-align: left; }
+        .hint-text { color: #94a3b8; font-size: 14px; margin-top: 10px; display: block; font-weight: normal; }
+        .options-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .opt-btn { background-color: #fff; border: 2px solid #e2e8f0; padding: 15px; font-size: 16px; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.1s; color: #334155; font-weight: 500; }
+        .opt-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; }
+        .correct { background-color: var(--success) !important; border-color: #27ae60 !important; color: white !important; }
+        .wrong { background-color: var(--danger) !important; border-color: #c0392b !important; color: white !important; }
+        .input-container { display: flex; gap: 10px; margin: 20px 0; }
+        .text-input { flex: 1; padding: 15px; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 8px; outline: none; text-align: center; font-weight: bold; }
+        .action-btn { width: 100%; padding: 15px; font-size: 17px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; color: white; transition: background 0.2s; margin-top: 12px; }
+        .btn-blue { background-color: var(--accent); }
+        .btn-red { background-color: var(--danger); }
+        .btn-gray { background-color: #94a3b8; }
+        .btn-quit { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .scroll-list { text-align: left; max-height: 200px; overflow-y: auto; background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e2e8f0; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding: 10px 0; font-size: 14px; }
+        .badge { background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+        .chart-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-top: 20px; }
+        #quiz-view, #result-view, #history-view { display: none; }
+        .audio-btn { background: #e0f2fe; color: #0284c7; border: none; padding: 10px 20px; font-size: 15px; border-radius: 20px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- ================= 1. 首页菜单 ================= -->
+    <div id="home-view">
+        <h1>高中英语词汇智能评估系统</h1>
+        <p class="subtitle">高考多维考查题型 • 大数据学情分析</p>
+        
+        <div class="section-title">1. 自由挑选复习单元：</div>
+        <div class="unit-grid">
+            <div><input type="checkbox" id="u10" class="card-checkbox" value="10" checked><label for="u10" class="card-label">Unit 10<br><small>Connections</small></label></div>
+            <div><input type="checkbox" id="u11" class="card-checkbox" value="11"><label for="u11" class="card-label">Unit 11<br><small>Conflict</small></label></div>
+            <div><input type="checkbox" id="u12" class="card-checkbox" value="12"><label for="u12" class="card-label">Unit 12<br><small>Innovation</small></label></div>
+        </div>
+
+        <div class="section-title">2. 选择专项强化题型：</div>
+        <div class="unit-grid" style="grid-template-columns: repeat(2, 1fr); gap:10px;">
+            <div><input type="radio" name="qtype" id="t1" class="card-checkbox" value="cn" checked><label for="t1" class="card-label">英译中选择 (含词性)</label></div>
+            <div><input type="radio" name="qtype" id="t2" class="card-checkbox" value="fill"><label for="t2" class="card-label">高考语境挖空 (无中文)</label></div>
+            <div><input type="radio" name="qtype" id="t3" class="card-checkbox" value="zh_en"><label for="t3" class="card-label">中译英基础拼写</label></div>
+            <div><input type="radio" name="qtype" id="t5" class="card-checkbox" value="context"><label for="t5" class="card-label">高考情景语义辨析</label></div>
+            <div style="grid-column: span 2;"><input type="radio" name="qtype" id="t4" class="card-checkbox" value="listen"><label for="t4" class="card-label">智能随机听写特训</label></div>
+        </div>
+
+        <button class="action-btn btn-blue" onclick="initQuiz()">🚀 启动所选单元测试</button>
+        <button class="action-btn btn-red" style="background-color:#7c3aed; margin-bottom: 25px;" onclick="openWrongBook()">📖 调阅重难点错题本档案</button>
+        
+        <!-- 大数据可视化数据看板 -->
+        <div class="section-title">📊 数字化个人学情看板</div>
+        <div class="chart-box">
+            <canvas id="radarChart" style="max-height:260px;"></canvas>
+        </div>
+        <div class="chart-box" style="margin-top:15px;">
+            <canvas id="lineChart" style="max-height:200px;"></canvas>
+        </div>
+    </div>
+
+    <!-- ================= 2. 核心答题区 ================= -->
+    <div id="quiz-view">
+        <div class="quiz-header">
+            <span id="info-mode">题型加载中</span>
+            <span id="info-progress">进度：0/0</span>
+            <button class="btn-quit" onclick="confirmQuit()">🚪 中途返回</button>
+        </div>
+        
+        <div id="listen-audio-area" style="display:none;">
+            <button class="audio-btn" onclick="playCurrentWord()">🔊 点击播放单词发音</button>
+        </div>
+
+        <div class="question-box" id="q-text">题目加载中</div>
+        
+        <!-- 选择/情景题 4选1 容器 -->
+        <div class="options-list" id="opts-box"></div>
+        
+        <!-- 填空型输入框容器 -->
+        <div id="input-box" style="display:none;">
+            <div class="input-container">
+                <input type="text" id="blank-input" class="text-input" placeholder="请注意大写或时态，按回车提交" autocomplete="off">
+                <button class="action-btn btn-blue" style="width:100px; margin-top:0;" onclick="checkSpellAnswer()">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 3. 成绩结算视图 ================= -->
+    <div id="result-view">
+        <h1>本轮通关报告</h1>
+        <div class="question-box" id="result-score" style="border:none; font-size:18px; text-align:center;"></div>
+        <div id="curr-wrong-area" style="display:none;">
+            <div class="section-title">本轮错题记录（已自动更新后台）：</div>
+            <div class="scroll-list" id="curr-wrong-list"></div>
+            <button class="action-btn btn-blue" onclick="retryCurrentWrongs()">🔄 针对性重练本轮错题</button>
+        </div>
+        <button class="action-btn btn-gray" onclick="toHome()">返回系统首页</button>
+    </div>
+
+    <!-- ================= 4. 长效错题本视图 ================= -->
+    <div id="history-view">
+        <h1>高考大纲核心错题本</h1>
+        <div class="scroll-list" id="history-list"></div>
+        <button class="action-btn btn-blue" style="background-color:#e67e22;" onclick="startHistoryQuiz()">🔥 错题盲区歼灭测试 (英译中)</button>
+        <button class="action-btn btn-gray" onclick="toHome()">返回系统首页</button>
+        <button class="action-btn" style="background-color:#cbd5e1; color:#334155; padding:8px; font-size:13px;" onclick="clearHistory()">🗑️ 擦除历史数据</button>
+    </div>
+</div>
+
+<!-- 加载独立外部数据文件 -->
+<script src="database.js"></script>
+
+<script>
+// 核心状态控制
+let activePool = []; let wrongList = []; let currIdx = 0; 
+let hasAnswered = false; let currentType = 'cn'; let currentListenSubtype = '';
+let radarChartInstance = null; let lineChartInstance = null;
+
+// 页面初始化渲染图表
+window.onload = function() { render学情图表(); };
+
+function showView(id) {
+    document.getElementById('home-view').style.display = 'none';
+    document.getElementById('quiz-view').style.display = 'none';
+    document.getElementById('result-view').style.display = 'none';
+    document.getElementById('history-view').style.display = 'none';
+    document.getElementById(id).style.display = 'block';
+    if(id === 'home-view') { render学情图表(); }
+}
+function toHome() { showView('home-view'); }
+function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+
+// 发音核心引擎
+function speak(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        let msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US'; msg.rate = 0.82;
+        window.speechSynthesis.speak(msg);
+    }
+}
+function playCurrentWord() { speak(activePool[currIdx].word); }
+
+// 中途强退逻辑
+function confirmQuit() {
+    if(confirm("确定要终止本次练习吗？当前已做完的题目数据仍会被计入统计报表。")) {
+        showResult();
+    }
+}
+
+// 启动测试
+function initQuiz() {
+    let units = [];
+    if(document.getElementById('u10').checked) units.push(10);
+    if(document.getElementById('u11').checked) units.push(11);
+    if(document.getElementById('u12').checked) units.push(12);
+    if(units.length === 0) { alert("请至少挑选一个复习单元！"); return; }
+
+    currentType = document.querySelector('input[name="qtype"]:checked').value;
+    activePool = globalDatabase.filter(item => units.includes(item.unit));
+    
+    if(activePool.length === 0) { alert("词库为空，请检查database.js！"); return; }
+    
+    activePool = shuffle([...activePool]);
+    wrongList = []; currIdx = 0;
+    showView('quiz-view');
+    renderQuestion();
+}
+
+// 核心多题型动态渲染引擎
+function renderQuestion() {
+    if(currIdx >= activePool.length) { showResult(); return; }
+    hasAnswered = false;
+    const q = activePool[currIdx];
+    
+    document.getElementById('info-progress').innerText = `进度：${currIdx + 1} / ${activePool.length}`;
+    document.getElementById('listen-audio-area').style.display = 'none';
+    document.getElementById('opts-box').style.display = 'none';
+    document.getElementById('input-box').style.display = 'none';
+    document.getElementById('blank-input').value = '';
+    document.getElementById('opts-box').innerHTML = '';
+
+    // 题型1：英译中选择题
+    if(currentType === 'cn') {
+        document.getElementById('info-mode').innerText = "题型：英译中";
+        document.getElementById('opts-box').style.display = 'flex';
+        document.getElementById('q-text').innerHTML = `<span style="font-size:34px; color:var(--accent); display:block; text-align:center;">${q.word}</span>`;
+        generateOptions(q, 'cn_opt');
+    }
+    // 题型2：高考语境挖空 (全新升级：纯长句高考语境，完全隐藏中文，只留首字母)
+    else if(currentType === 'fill') {
+        document.getElementById('info-mode').innerText = "题型：高考语境挖空";
+        document.getElementById('input-box').style.display = 'flex';
+        let len = q.word.length;
+        let masked = q.word[0] + "_ ".repeat(len - 1);
+        document.getElementById('q-text').innerHTML = `<div>${q.fill_q}</div><span class="hint-text">首字母提示：<strong style="color:#e67e22; font-size:20px;">${masked.trim()}</strong> (包含 ${len} 个字母)</span>`;
+    }
+    // 题型3：中译英基础拼写
+    else if(currentType === 'zh_en') {
+        document.getElementById('info-mode').innerText = "题型：中译英拼写";
+        document.getElementById('input-box').style.display = 'flex';
+        document.getElementById('q-text').innerHTML = `<span style="font-size:20px;">【${q.pos} ${q.cn}】</span><span class="hint-text">首字母提示：<strong style="color:var(--accent); font-size:24px;">${q.word[0]}</strong>...</span>`;
+    }
+    // 题型4：高考情景语义辨析 (重新满血加回)
+    else if(currentType === 'context') {
+        document.getElementById('info-mode').innerText = "题型：高考语义辨析";
+        document.getElementById('opts-box').style.display = 'flex';
+        document.getElementById('q-text').innerHTML = `<div>${q.ctx_q}</div><span class="hint-text">请结合语境，选出最符合逻辑的英文单词填入：</span>`;
+        generateOptions(q, 'en_opt');
+    }
+    // 题型5：智能听写特训
+    else if(currentType === 'listen') {
+        document.getElementById('listen-audio-area').style.display = 'block';
+        let subTypes = ['audio_to_cn', 'audio_to_en', 'audio_to_write'];
+        currentListenSubtype = subTypes[Math.floor(Math.random() * subTypes.length)];
+        setTimeout(() => { playCurrentWord(); }, 300);
+
+        if(currentListenSubtype === 'audio_to_cn') {
+            document.getElementById('info-mode').innerText = "听写：听音选中文";
+            document.getElementById('opts-box').style.display = 'flex';
+            document.getElementById('q-text').innerText = "🎧 听发音，选出正确的中文释义";
+            generateOptions(q, 'cn_opt');
+        } else if(currentListenSubtype === 'audio_to_en') {
+            document.getElementById('info-mode').innerText = "听写：听音选英文";
+            document.getElementById('opts-box').style.display = 'flex';
+            document.getElementById('q-text').innerText = "🎧 听发音，选出对应的英文单词";
+            generateOptions(q, 'en_opt');
+        } else if(currentListenSubtype === 'audio_to_write') {
+            document.getElementById('info-mode').innerText = "听写：听音拼写单词";
+            document.getElementById('input-box').style.display = 'flex';
+            document.getElementById('q-text').innerHTML = `🎧 听发音，拼写出完整单词<span class="hint-text">提示：首字母为 [ ${q.word[0]} ]</span>`;
+        }
+    }
+}
+
+// 4选1干扰项高智能生成算法（确保词性严格一致）
+function generateOptions(correctObj, mode) {
+    let options = [];
+    let correctText = mode === 'cn_opt' ? `${correctObj.pos} ${correctObj.cn}` : correctObj.word;
+    options.push(correctText);
+
+    // 如果是情景题，直接读取数据库中AI生成的的高迷惑干扰项
+    if(currentType === 'context' && correctObj.ctx_opts) {
+        options = shuffle([...correctObj.ctx_opts]);
+    } else {
+        // 动态过滤同词性的词作为错误项
+        let distractors = globalDatabase.filter(item => item.word !== correctObj.word && item.pos === correctObj.pos);
+        if(distractors.length < 3) distractors = globalDatabase.filter(item => item.word !== correctObj.word);
+        shuffle(distractors);
+        for(let i=0; i<3; i++) {
+            let d = distractors[i];
+            options.push(mode === 'cn_opt' ? `${d.pos} ${d.cn}` : d.word);
+        }
+        shuffle(options);
+    }
+
+    const box = document.getElementById('opts-box');
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.innerText = opt;
+        btn.onclick = () => {
+            if(hasAnswered) return; hasAnswered = true;
+            document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+            
+            // 记入题型图表大数据
+            logTypeStatistics(currentType);
+
+            if(opt === correctText) {
+                btn.classList.add('correct');
+                // 仅在答对时，记录每天背诵去重单词量
+                logDailyWordPassed(correctObj.word);
+                setTimeout(() => { currIdx++; renderQuestion(); }, 700);
+            } else {
+                btn.classList.add('wrong');
+                document.querySelectorAll('.opt-btn').forEach(b => { if(b.innerText === correctText) b.classList.add('correct'); });
+                logError(correctObj);
+                setTimeout(() => { currIdx++; renderQuestion(); }, 1600);
+            }
+        };
+        box.appendChild(btn);
+    });
+}
+
+// 输入框提交校验（支持回车键）
+function checkSpellAnswer() {
+    if(hasAnswered) return;
+    const inputEl = document.getElementById('blank-input');
+    const userAns = inputEl.value.trim().toLowerCase();
+    if(!userAns) return;
+    
+    hasAnswered = true;
+    const q = activePool[currIdx];
+    logTypeStatistics(currentType);
+
+    if(userAns === q.word.toLowerCase()) {
+        inputEl.style.backgroundColor = '#d4edda';
+        logDailyWordPassed(q.word);
+        setTimeout(() => { inputEl.style.backgroundColor = '#fff'; currIdx++; renderQuestion(); }, 700);
+    } else {
+        inputEl.style.backgroundColor = '#f8d7da';
+        inputEl.value = `❌ 答案: ${q.word}`;
+        logError(q);
+        setTimeout(() => { inputEl.style.backgroundColor = '#fff'; currIdx++; renderQuestion(); }, 2000);
+    }
+}
+
+// 绑定回车事件
+document.getElementById('blank-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') { checkSpellAnswer(); }
+});
+
+// 数据归档保存逻辑
+function logError(obj) {
+    if (!wrongList.some(w => w.word === obj.word)) wrongList.push(obj);
+    let history = JSON.parse(localStorage.getItem('hsFinalHistory')) || {};
+    if (history[obj.word]) { history[obj.word].count += 1; } 
+    else { history[obj.word] = { unit: obj.unit, pos: obj.pos, cn: obj.cn, count: 1 }; }
+    localStorage.setItem('hsFinalHistory', JSON.stringify(history));
+}
+
+// 记录题型被刷的次数 (多边形数据基础)
+function logTypeStatistics(type) {
+    let stats = JSON.parse(localStorage.getItem('hsTypeStats')) || { cn: 0, fill: 0, zh_en: 0, context: 0, listen: 0 };
+    stats[type] = (stats[type] || 0) + 1;
+    localStorage.setItem('hsTypeStats', JSON.stringify(stats));
+}
+
+// 记录每日通过的独立单词量（去重）
+function logDailyWordPassed(word) {
+    const today = new Date().toLocaleDateString(); // 生成 "2026/5/19" 格式的横坐标
+    let dailyData = JSON.parse(localStorage.getItem('hsDailyWords')) || {};
+    if (!dailyData[today]) dailyData[today] = [];
+    if (!dailyData[today].includes(word)) {
+        dailyData[today].push(word); // 确保同一个词当天不重复计算
+    }
+    localStorage.setItem('hsDailyWords', JSON.stringify(dailyData));
+}
+
+// 渲染大数据的核心引擎 (Chart.js 交互配置)
+function render学情图表() {
+    // 1. 多边形雷达图 (题型占比)
+    let typeStats = JSON.parse(localStorage.getItem('hsTypeStats')) || { cn: 0, fill: 0, zh_en: 0, context: 0, listen: 0 };
+    const ctxRadar = document.getElementById('radarChart').getContext('2d');
+    if (radarChartInstance) radarChartInstance.destroy();
+    radarChartInstance = new Chart(ctxRadar, {
+        type: 'radar',
+        data: {
+            labels: ['英译中选择', '高考语境挖空', '中译英拼写', '高考语义辨析', '听写强化特训'],
+            datasets: [{
+                label: '完成题型次数分布',
+                data: [typeStats.cn, typeStats.fill, typeStats.zh_en, typeStats.context, typeStats.listen],
+                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                borderColor: 'rgba(52, 152, 219, 1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(52, 152, 219, 1)'
+            }]
+        },
+        options: { scales: { r: { angleLines: { display: true }, suggestMin: 0 } }, plugins: { legend: { position: 'top' } } }
+    });
+
+    // 2. 趋势曲线图 (每日背诵独立去重新词量)
+    let dailyData = JSON.parse(localStorage.getItem('hsDailyWords')) || {};
+    let dates = Object.keys(dailyData).sort(); // 按时间先后排序
+    let counts = dates.map(d => dailyData[d].length); // 提取出当天通关的去重词汇数
+
+    // 如果没有数据，默认生成最近一天的空数据占位
+    if(dates.length === 0) { dates = [new Date().toLocaleDateString()]; counts = [0]; }
+
+    const ctxLine = document.getElementById('lineChart').getContext('2d');
+    if (lineChartInstance) lineChartInstance.destroy();
+    lineChartInstance = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: '新通关独立单词量',
+                data: counts,
+                borderColor: '#2ecc71',
+                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                fill: true,
+                tension: 0.2,
+                borderWidth: 3,
+                pointRadius: 4
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: true } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+}
+
+// 报告生成
+function showResult() {
+    showView('result-view');
+    let total = activePool.slice(0, currIdx).length; // 动态计算实际做过的题目数
+    if(currIdx >= activePool.length) total = activePool.length;
+    let score = total - wrongList.length;
+    
+    document.getElementById('result-score').innerHTML = `本次通关共完成 <strong>${total}</strong> 题<br>无误通过：<span style="color:var(--success)">${score}</span> 词 | 遭遇瓶颈：<span style="color:var(--danger)">${wrongList.length}</span> 词`;
+    
+    const area = document.getElementById('curr-wrong-area');
+    const list = document.getElementById('curr-wrong-list');
+    if(wrongList.length > 0) {
+        area.style.display = 'block'; list.innerHTML = '';
+        wrongList.forEach(w => { list.innerHTML += `<div class="list-item"><span><strong>${w.word}</strong> (${w.pos} ${w.cn})</span></div>`; });
+    } else { area.style.display = 'none'; }
+}
+
+function retryCurrentWrongs() {
+    activePool = shuffle([...wrongList]); wrongList = []; currIdx = 0; showView('quiz-view'); renderQuestion();
+}
+
+function openWrongBook() {
+    showView('history-view');
+    let history = JSON.parse(localStorage.getItem('hsFinalHistory')) || {};
+    const box = document.getElementById('history-list'); box.innerHTML = '';
+    let sortable = Object.keys(history).map(k => { return { word: k, ...history[k] }; }).sort((a,b) => b.count - a.count);
+    if(sortable.length === 0) { box.innerHTML = '<p style="color:#94a3b8; text-align:center;">错题本极度干净！🎉</p>'; return; }
+    sortable.forEach(item => {
+        box.innerHTML += `<div class="list-item"><span><strong>${item.word}</strong> <small style="color:#64748b;">${item.pos} ${item.cn}</small></span><span class="badge">错 ${item.count} 次</span></div>`;
+    });
+}
+
+function startHistoryQuiz() {
+    let history = JSON.parse(localStorage.getItem('hsFinalHistory')) || {};
+    let pool = Object.keys(history).map(k => { return globalDatabase.find(g => g.word === k) || { word: k, unit: history[k].unit, pos: history[k].pos, cn: history[k].cn }; });
+    if(pool.length === 0) return;
+    activePool = shuffle([...pool]); wrongList = []; currIdx = 0; currentType = 'cn'; showView('quiz-view'); renderQuestion();
+}
+
+function clearHistory() { if(confirm("该操作将同步抹除历史统计图表与错题，确定吗？")) { localStorage.clear(); openWrongBook(); } }
+</script>
+</body>
+</html>
