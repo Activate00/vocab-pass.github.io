@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>高中英语词汇全教材智能评估系统</title>
+    <title>高中英语词汇全教材智能评估系统 | 授权登录版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #34495e; --accent: #3498db; --success: #2ecc71; --danger: #e74c3c; --bg: #f5f7fa; }
@@ -38,52 +38,156 @@
         .badge { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 20px; font-size: 11px; }
         .chart-box { background: #fff; border-radius: 20px; padding: 12px; margin-top: 15px; border: 1px solid #eef2f8; }
         .audio-btn { background: #eef2ff; border: none; padding: 8px 20px; border-radius: 40px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
+        
+        /* 登录界面样式 */
+        .login-container { text-align: center; padding: 20px; }
+        .login-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 40px; border: 2px solid #cbd5e6; text-align: center; font-size: 16px; }
+        .error-msg { color: #e74c3c; font-size: 13px; margin: 8px 0; }
+        .user-info { display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-bottom: 15px; font-size: 13px; color: #5f7f9e; }
     </style>
 </head>
 <body>
 <div class="container">
-    <div id="home-view">
-        <h1>📚 高中英语词汇全教材系统</h1>
-        <p class="subtitle">必修 + 选择性必修 | 精确单元归属</p>
-        <div id="book-selector-area"></div>
-        <div class="section-title">🎯 题型模式</div>
-        <div class="unit-grid" style="grid-template-columns: repeat(2,1fr); gap:10px; margin-bottom: 20px;">
-            <div><input type="radio" name="qtype" id="t1" class="card-checkbox" value="cn" checked><label for="t1" class="card-label">英译中 (含词性)</label></div>
-            <div><input type="radio" name="qtype" id="t2" class="card-checkbox" value="fill"><label for="t2" class="card-label">语境挖空</label></div>
-            <div><input type="radio" name="qtype" id="t3" class="card-checkbox" value="zh_en"><label for="t3" class="card-label">中译英拼写</label></div>
-            <div><input type="radio" name="qtype" id="t5" class="card-checkbox" value="context"><label for="t5" class="card-label">语义辨析</label></div>
-            <div style="grid-column: span 2;"><input type="radio" name="qtype" id="t4" class="card-checkbox" value="listen"><label for="t4" class="card-label">🎧 智能听写特训</label></div>
+    <!-- 登录视图 -->
+    <div id="login-view">
+        <div class="login-container">
+            <h1>🔐 授权访问</h1>
+            <p class="subtitle">请输入您的用户名和密码</p>
+            <input type="text" id="login-username" class="login-input" placeholder="用户名" autocomplete="off">
+            <input type="password" id="login-password" class="login-input" placeholder="密码">
+            <div id="login-error" class="error-msg"></div>
+            <button class="action-btn btn-blue" onclick="attemptLogin()">登录</button>
+            <p style="margin-top: 15px; font-size: 12px; color: #94a3b8;">仅限授权用户使用</p>
         </div>
-        <button class="action-btn btn-blue" onclick="initQuiz()">🚀 启动所选单元测试</button>
-        <button class="action-btn btn-red" style="background-color:#7c3aed;" onclick="openWrongBook()">📕 错题本</button>
-        <div class="section-title">📊 学情看板</div>
-        <div class="chart-box"><canvas id="radarChart" style="max-height:240px"></canvas></div>
-        <div class="chart-box"><canvas id="lineChart" style="max-height:200px"></canvas></div>
     </div>
-    <div id="quiz-view" style="display:none;">
-        <div class="quiz-header"><span id="info-mode"></span><span id="info-progress"></span><button class="btn-quit" onclick="confirmQuit()">返回</button></div>
-        <div id="listen-audio-area" style="display:none;"><button class="audio-btn" onclick="playCurrentWord()">🔊 播放发音</button></div>
-        <div class="question-box" id="q-text"></div>
-        <div class="options-list" id="opts-box"></div>
-        <div id="input-box" style="display:none;"><div class="input-container"><input type="text" id="blank-input" class="text-input" placeholder="输入单词" autocomplete="off"><button class="action-btn btn-blue" style="width:100px;" onclick="checkSpellAnswer()">提交</button></div></div>
-    </div>
-    <div id="result-view" style="display:none;">
-        <h1>✅ 通关报告</h1>
-        <div class="question-box" id="result-score" style="border:none; text-align:center;"></div>
-        <div id="curr-wrong-area" style="display:none;"><div class="section-title">错题列表</div><div class="scroll-list" id="curr-wrong-list"></div><button class="action-btn btn-blue" onclick="retryCurrentWrongs()">重练错题</button></div>
-        <button class="action-btn btn-gray" onclick="toHome()">返回首页</button>
-    </div>
-    <div id="history-view" style="display:none;">
-        <h1>📋 错题本</h1>
-        <div class="scroll-list" id="history-list"></div>
-        <button class="action-btn btn-blue" style="background-color:#e67e22;" onclick="startHistoryQuiz()">歼灭错题</button>
-        <button class="action-btn btn-gray" onclick="toHome()">首页</button>
-        <button class="action-btn" style="background-color:#e2e8f0; color:#334155;" onclick="clearHistory()">清除数据</button>
+
+    <!-- 主应用视图（登录后才可见） -->
+    <div id="app-view" style="display:none;">
+        <div class="user-info">
+            <span>👤 <span id="current-user"></span></span>
+            <button class="btn-quit" onclick="logout()">🚪 退出登录</button>
+        </div>
+        <div id="home-view">
+            <h1>📚 高中英语词汇全教材系统</h1>
+            <p class="subtitle">必修 + 选择性必修 | 精确单元归属</p>
+            <div id="book-selector-area"></div>
+            <div class="section-title">🎯 题型模式</div>
+            <div class="unit-grid" style="grid-template-columns: repeat(2,1fr); gap:10px; margin-bottom: 20px;">
+                <div><input type="radio" name="qtype" id="t1" class="card-checkbox" value="cn" checked><label for="t1" class="card-label">英译中 (含词性)</label></div>
+                <div><input type="radio" name="qtype" id="t2" class="card-checkbox" value="fill"><label for="t2" class="card-label">语境挖空</label></div>
+                <div><input type="radio" name="qtype" id="t3" class="card-checkbox" value="zh_en"><label for="t3" class="card-label">中译英拼写</label></div>
+                <div><input type="radio" name="qtype" id="t5" class="card-checkbox" value="context"><label for="t5" class="card-label">语义辨析</label></div>
+                <div style="grid-column: span 2;"><input type="radio" name="qtype" id="t4" class="card-checkbox" value="listen"><label for="t4" class="card-label">🎧 智能听写特训</label></div>
+            </div>
+            <button class="action-btn btn-blue" onclick="initQuiz()">🚀 启动所选单元测试</button>
+            <button class="action-btn btn-red" style="background-color:#7c3aed;" onclick="openWrongBook()">📕 错题本</button>
+            <div class="section-title">📊 学情看板</div>
+            <div class="chart-box"><canvas id="radarChart" style="max-height:240px"></canvas></div>
+            <div class="chart-box"><canvas id="lineChart" style="max-height:200px"></canvas></div>
+        </div>
+        <div id="quiz-view" style="display:none;">
+            <div class="quiz-header"><span id="info-mode"></span><span id="info-progress"></span><button class="btn-quit" onclick="confirmQuit()">返回</button></div>
+            <div id="listen-audio-area" style="display:none;"><button class="audio-btn" onclick="playCurrentWord()">🔊 播放发音</button></div>
+            <div class="question-box" id="q-text"></div>
+            <div class="options-list" id="opts-box"></div>
+            <div id="input-box" style="display:none;"><div class="input-container"><input type="text" id="blank-input" class="text-input" placeholder="输入单词" autocomplete="off"><button class="action-btn btn-blue" style="width:100px;" onclick="checkSpellAnswer()">提交</button></div></div>
+        </div>
+        <div id="result-view" style="display:none;">
+            <h1>✅ 通关报告</h1>
+            <div class="question-box" id="result-score" style="border:none; text-align:center;"></div>
+            <div id="curr-wrong-area" style="display:none;"><div class="section-title">错题列表</div><div class="scroll-list" id="curr-wrong-list"></div><button class="action-btn btn-blue" onclick="retryCurrentWrongs()">重练错题</button></div>
+            <button class="action-btn btn-gray" onclick="toHome()">返回首页</button>
+        </div>
+        <div id="history-view" style="display:none;">
+            <h1>📋 错题本</h1>
+            <div class="scroll-list" id="history-list"></div>
+            <button class="action-btn btn-blue" style="background-color:#e67e22;" onclick="startHistoryQuiz()">歼灭错题</button>
+            <button class="action-btn btn-gray" onclick="toHome()">首页</button>
+            <button class="action-btn" style="background-color:#e2e8f0; color:#334155;" onclick="clearHistory()">清除数据</button>
+        </div>
     </div>
 </div>
+
 <script src="database.js"></script>
 <script>
-// ==================== 教材配置（与 database.js 中的 unit 值完全匹配）====================
+// ==================== 用户授权管理 ====================
+// 预设允许的用户列表（用户名: 密码）
+// 您可以根据需要增加或修改，格式: { username: "用户名", password: "密码" }
+const ALLOWED_USERS = [
+    { username: "admin", password: "admin123" },
+    { username: "teacher", password: "english2025" },
+    { username: "student1", password: "pass123" }
+];
+
+function initUserStorage() {
+    let storedUsers = localStorage.getItem('vocab_users');
+    if (!storedUsers) {
+        localStorage.setItem('vocab_users', JSON.stringify(ALLOWED_USERS));
+    } else {
+        let existing = JSON.parse(storedUsers);
+        let existingUsernames = existing.map(u => u.username);
+        for (let newUser of ALLOWED_USERS) {
+            if (!existingUsernames.includes(newUser.username)) {
+                existing.push(newUser);
+            }
+        }
+        localStorage.setItem('vocab_users', JSON.stringify(existing));
+    }
+}
+
+function attemptLogin() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    const errorDiv = document.getElementById('login-error');
+    
+    if (!username || !password) {
+        errorDiv.innerText = '请输入用户名和密码';
+        return;
+    }
+    
+    let users = JSON.parse(localStorage.getItem('vocab_users')) || [];
+    let validUser = users.find(u => u.username === username && u.password === password);
+    
+    if (validUser) {
+        localStorage.setItem('vocab_loggedInUser', username);
+        showAppView();
+    } else {
+        errorDiv.innerText = '用户名或密码错误，请重试';
+    }
+}
+
+function showAppView() {
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('app-view').style.display = 'block';
+    const username = localStorage.getItem('vocab_loggedInUser');
+    document.getElementById('current-user').innerText = username || '用户';
+    if (typeof buildSelector === 'function') {
+        buildSelector();
+        renderCharts();
+    }
+}
+
+function logout() {
+    localStorage.removeItem('vocab_loggedInUser');
+    document.getElementById('app-view').style.display = 'none';
+    document.getElementById('login-view').style.display = 'block';
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-error').innerText = '';
+    if (typeof toHome === 'function') toHome();
+}
+
+function checkLoginStatus() {
+    const loggedIn = localStorage.getItem('vocab_loggedInUser');
+    if (loggedIn) {
+        showAppView();
+    } else {
+        document.getElementById('login-view').style.display = 'block';
+        document.getElementById('app-view').style.display = 'none';
+    }
+}
+
+// ==================== 以下为原有词汇系统代码 ====================
 const BOOKS_CONFIG = [
     { name: "必修一", units: [1, 2, 3], displayUnits: ["Unit 1", "Unit 2", "Unit 3"] },
     { name: "必修二", units: [4, 5, 6], displayUnits: ["Unit 4", "Unit 5", "Unit 6"] },
@@ -95,15 +199,12 @@ const BOOKS_CONFIG = [
 ];
 
 let vocabularyDb = (typeof globalDatabase !== 'undefined') ? globalDatabase : [];
-// 统计每个 unit 的单词数量（unit 可能是数字或字符串）
 let unitWordCount = {};
-vocabularyDb.forEach(item => {
-    let u = item.unit;
-    unitWordCount[u] = (unitWordCount[u] || 0) + 1;
-});
+vocabularyDb.forEach(item => { let u = item.unit; unitWordCount[u] = (unitWordCount[u] || 0) + 1; });
 
 function buildSelector() {
     let container = document.getElementById('book-selector-area');
+    if (!container) return;
     container.innerHTML = '';
     for (let book of BOOKS_CONFIG) {
         let card = document.createElement('div');
@@ -124,7 +225,7 @@ function buildSelector() {
             chk.type = 'checkbox';
             chk.id = id;
             chk.className = 'card-checkbox';
-            chk.value = unitVal;   // 保留原始 unit 值，用于筛选
+            chk.value = unitVal;
             let lbl = document.createElement('label');
             lbl.htmlFor = id;
             lbl.className = 'card-label';
@@ -141,11 +242,6 @@ function buildSelector() {
 let activePool = [], wrongList = [], currIdx = 0, hasAnswered = false, currentType = 'cn', currentListenSubtype = '';
 let radarChart, lineChart;
 
-window.onload = () => {
-    buildSelector();
-    renderCharts();
-};
-
 function getDb() { return vocabularyDb; }
 function shuffle(a) { return a.sort(() => Math.random() - 0.5); }
 function showView(id) {
@@ -160,12 +256,9 @@ function toHome() { showView('home-view'); }
 
 function initQuiz() {
     let selectedUnits = [];
-    document.querySelectorAll('#book-selector-area input[type="checkbox"]:checked').forEach(cb => {
-        selectedUnits.push(cb.value);   // 直接存储原始 unit 值（数字或字符串）
-    });
+    document.querySelectorAll('#book-selector-area input[type="checkbox"]:checked').forEach(cb => { selectedUnits.push(cb.value); });
     if(selectedUnits.length === 0) { alert("请至少选择一个单元"); return; }
     currentType = document.querySelector('input[name="qtype"]:checked').value;
-    // 注意：数据库中的 unit 字段类型需与 selectedUnits 一致（数字或字符串）
     activePool = getDb().filter(item => selectedUnits.includes(String(item.unit)) || selectedUnits.includes(item.unit));
     if(activePool.length === 0) { alert("所选单元无词汇数据，请检查数据库"); return; }
     activePool = shuffle(activePool);
@@ -182,6 +275,15 @@ function renderQuestion() {
     document.getElementById('listen-audio-area').style.display = 'none';
     document.getElementById('opts-box').style.display = 'none';
     document.getElementById('input-box').style.display = 'none';
+    
+    // 清空并重置输入框（重要：解决颜色残留和内容残留）
+    const inputField = document.getElementById('blank-input');
+    if (inputField) {
+        inputField.value = '';
+        inputField.style.backgroundColor = '#fff';
+        inputField.placeholder = '输入单词';
+    }
+    
     const qTextDiv = document.getElementById('q-text');
     if(currentType === 'cn') {
         document.getElementById('info-mode').innerText = "📘 英译中";
@@ -229,7 +331,6 @@ function genOptions(correctObj, mode) {
     let db = getDb();
     let correctText = mode === 'cn_opt' ? `${correctObj.pos} ${correctObj.cn}` : correctObj.word;
     let options = [correctText];
-    // 干扰项优先从相同 unit 中选取
     let sameUnitItems = db.filter(item => String(item.unit) === String(correctObj.unit) && item.word !== correctObj.word);
     let distractors = sameUnitItems.length >= 3 ? sameUnitItems : db.filter(item => item.word !== correctObj.word);
     shuffle(distractors);
@@ -298,10 +399,16 @@ function logDailyWordPassed(w) { let d=new Date().toLocaleDateString(); let stor
 function renderCharts() {
     let stats=JSON.parse(localStorage.getItem('hsTypeStats'))||{cn:0,fill:0,zh_en:0,context:0,listen:0};
     if(radarChart) radarChart.destroy();
-    radarChart = new Chart(document.getElementById('radarChart'),{type:'radar',data:{labels:['英译中','挖空','中译英','辨析','听写'],datasets:[{label:'练习次数',data:[stats.cn,stats.fill,stats.zh_en,stats.context,stats.listen],backgroundColor:'rgba(52,152,219,0.2)',borderColor:'#3498db'}]},options:{scales:{r:{beginAtZero:true}}}});
+    let ctxRadar = document.getElementById('radarChart');
+    if(ctxRadar) {
+        radarChart = new Chart(ctxRadar,{type:'radar',data:{labels:['英译中','挖空','中译英','辨析','听写'],datasets:[{label:'练习次数',data:[stats.cn,stats.fill,stats.zh_en,stats.context,stats.listen],backgroundColor:'rgba(52,152,219,0.2)',borderColor:'#3498db'}]},options:{scales:{r:{beginAtZero:true}}}});
+    }
     let daily=JSON.parse(localStorage.getItem('hsDailyWords'))||{}; let dates=Object.keys(daily).sort(); let counts=dates.map(d=>daily[d].length);
-    if(lineChart) lineChart.destroy();
-    lineChart = new Chart(document.getElementById('lineChart'),{type:'line',data:{labels:dates.length?dates:[new Date().toLocaleDateString()],datasets:[{label:'每日新词',data:counts.length?counts:[0],borderColor:'#2ecc71',fill:true}]}});
+    let ctxLine = document.getElementById('lineChart');
+    if(ctxLine) {
+        if(lineChart) lineChart.destroy();
+        lineChart = new Chart(ctxLine,{type:'line',data:{labels:dates.length?dates:[new Date().toLocaleDateString()],datasets:[{label:'每日新词',data:counts.length?counts:[0],borderColor:'#2ecc71',fill:true}]}});
+    }
 }
 function showResult() {
     showView('result-view');
@@ -315,9 +422,13 @@ function showResult() {
 function retryCurrentWrongs(){ activePool=shuffle([...wrongList]); wrongList=[]; currIdx=0; showView('quiz-view'); renderQuestion(); }
 function openWrongBook(){ showView('history-view'); let h=JSON.parse(localStorage.getItem('hsFinalHistory'))||{}; let box=document.getElementById('history-list'); box.innerHTML=''; let arr=Object.keys(h).map(k=>({word:k,...h[k]})).sort((a,b)=>b.count-a.count); if(!arr.length){box.innerHTML='<p>暂无错题</p>';return;} arr.forEach(i=>{box.innerHTML+=`<div class="list-item"><span><strong>${i.word}</strong> ${i.pos} ${i.cn}</span><span class="badge">错${i.count}次</span></div>`;});}
 function startHistoryQuiz(){ let h=JSON.parse(localStorage.getItem('hsFinalHistory'))||{}; let db=getDb(); let pool=Object.keys(h).map(k=>db.find(g=>g.word===k)).filter(v=>v); if(!pool.length) return; activePool=shuffle(pool); wrongList=[]; currIdx=0; currentType='cn'; showView('quiz-view'); renderQuestion(); }
-function clearHistory(){ if(confirm("清除所有数据？")){ localStorage.clear(); openWrongBook(); renderCharts(); } }
+function clearHistory(){ if(confirm("清除所有数据？")){ localStorage.clear(); initUserStorage(); openWrongBook(); renderCharts(); } }
 document.getElementById('blank-input')?.addEventListener('keypress',e=>{if(e.key==='Enter')checkSpellAnswer();});
 function confirmQuit(){ if(confirm("终止练习？")) showResult(); }
+
+// 页面加载时初始化用户存储并检查登录状态
+initUserStorage();
+checkLoginStatus();
 </script>
 </body>
 </html>
